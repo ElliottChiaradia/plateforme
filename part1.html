@@ -25,7 +25,7 @@ function preload() {
     game.load.image('monstre_saute', 'assets/monstre2.png');
     game.load.image('sky', 'assets/fond1.png');
     game.load.image('ground', 'assets/platform.png');
-    game.load.image('star', 'assets/axel.png');
+    game.load.image('star', 'assets/beer.png');
     game.load.image('sang', 'assets/sang.png');
     game.load.image('axel_troll', 'assets/axel2.png');
     game.load.image('restart', 'assets/restart.png');
@@ -49,7 +49,6 @@ var cursors;
 var stars;
 var score = 0;
 var scoreText;
-var textFin;
 var blood;
 var end =false;
 
@@ -63,6 +62,16 @@ var music;
 
 var btnRestart;
 
+var min =-20;
+var max =20;
+
+var monstre;
+var tire =false;
+var bullets;
+var modifMonsterGravity =false;
+
+
+
 // --------------------------------------------------------------------------------------//
 
 function create() {
@@ -74,7 +83,7 @@ function create() {
 
     //  A simple background for our game
     game.add.sprite(0, 0, 'sky');
-
+   
     platforms = game.add.group();
 
     platforms.enableBody = true;
@@ -110,14 +119,27 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
 //  The score
     scoreText = game.add.text(game.world.width-150 , 0, '0 POINT', { fontSize: '60px', fill: '#000' });
-    textFin = game.add.text(0 ,0, '', { fontSize: '200px', fill: '#000' });
-
+    
 //The Sound
     bruit_jump = game.add.audio('audio_jump');
     bruit_dead = game.add.audio('audio_dead');
     bruit_coin = game.add.audio('audio_coin');
     music = game.add.audio('main_music');
     music.play();
+//Bullets
+    bullets = game.add.group();
+    bullets.enableBody = true;
+    bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 20; i++)
+    {
+        var b = bullets.create(0, 0, 'bullet');
+        b.name = 'bullet' + i;
+        b.exists = false;
+        b.visible = false;
+        b.checkWorldBounds = true;
+        b.events.onOutOfBounds.add(resetBullet, this);
+    }
 
 }
 
@@ -137,14 +159,16 @@ function update() {
     if (cursors.left.isDown && end==false)
     {
         //  Move to the left
-        player.body.velocity.x = -150;
+        var randomValue = game.rnd.integerInRange(min*score, max*score);
+        player.body.velocity.x = -150+randomValue;
 
         player.animations.play('left');
     }
     else if (cursors.right.isDown && end==false)
     {
         //  Move to the right
-        player.body.velocity.x = 150;
+        var randomValue = game.rnd.integerInRange(min*score, max*score);
+        player.body.velocity.x = 150+randomValue;
 
         player.animations.play('right');
     }
@@ -162,6 +186,29 @@ function update() {
         bruit_jump.play();
         player.body.velocity.y = -580;
     }
+    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+    {
+       alert("position du player : x :"+player.body.x+" y :"+player.body.y);
+    }
+     if(monstre.body.y<350 &&tire==true)
+    {
+        alert(monstre.body.y);
+        tire=false;
+    }
+     if(monstre.body.y>470)
+    {
+        //tire=true;
+        if(modifMonsterGravity==true)
+        {
+            modifMonsterGravity=false;
+        }
+    }
+      if(monstre.body.y<350 &&player.body.x>590&&player.body.x<640&&modifMonsterGravity==false)
+    {
+        modifMonsterGravity=true;
+        monstre.body.gravity.y = 1000;
+    }
+
 
 
 }
@@ -186,9 +233,9 @@ function createStars(){
 function createMonsters(){
     for (var i = 1; i < 2; i++)
     {
-        var monstre = monstres.create(i * 600, game.world.height - 300, 'monstre_saute');
+        monstre = monstres.create(i * 600, game.world.height - 300, 'monstre_saute');
         monstre.body.gravity.y = 100;
-        monstre.body.bounce.y = 1;
+        monstre.body.bounce.y = 1.004;
     }
 }
 function createPlayer(){
@@ -196,18 +243,19 @@ function createPlayer(){
     game.physics.arcade.enable(player);
 
     player.body.bounce.y = 0.1;
-    player.body.gravity.y = 800;
+    player.body.gravity.y = 850;
     player.body.collideWorldBounds = true;
 
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+    game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
 }
 
 function dead (player, monstre) {
     
     player.kill();
     bruit_dead.play();
-    music.stop();
     gameOver("lose");
 
 }
@@ -249,7 +297,6 @@ function gameOver(statut)
         player.kill();
     if(statut=="win")
     {
-        //textFin.text ="Tu as mangé toutes les têtes d'Axel !";
         teteAxel();
     }
     else
@@ -263,9 +310,10 @@ function gameOver(statut)
         //EndTitle
         for (var i = 0; i < 4; i++)
         {
-            endTitle = game.add.sprite(270+ 69 * i, -1000, 'noob', i);
-            game.add.tween(endTitle).to({y: 240}, 2000, Phaser.Easing.Bounce.Out, true, 1000 + 400 * i, false);
+            //endTitle = game.add.sprite(270+ 69 * i, -1000, 'noob', i);
+           // game.add.tween(endTitle).to({y: 240}, 2000, Phaser.Easing.Bounce.Out, true, 1000 + 400 * i, false);
         }
+
     }
     //bouton Restart
         //Création du bouton
@@ -290,7 +338,7 @@ function restart(){
     {
         blood.destroy();
        // there is a bug with the deleting endTitle
-        endTitle.kill();
+       // endTitle.kill();
     }
 
     createStars();
