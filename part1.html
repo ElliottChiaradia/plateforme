@@ -268,11 +268,13 @@ function nightEventStart(){
 }
 
 function fadePictureIn() {
-    game.add.tween(fondNight).to( { alpha: 1 }, 15000, Phaser.Easing.Linear.None, true);
+    var tween =game.add.tween(fondNight).to( { alpha: 1 }, 15000, Phaser.Easing.Linear.None, true);
+    tween.onComplete.add(this.fadePictureOut, this);
 }
 
 function fadePictureOut() {
-    game.add.tween(fondNight).to( { alpha: 0 }, 8000, Phaser.Easing.Linear.None, true);
+    var tween =game.add.tween(fondNight).to( { alpha: 0 }, 15000, Phaser.Easing.Linear.None, true);
+    tween.onComplete.add(this.fadePictureIn, this);
 }
 
 function dead (player, monstre) {
@@ -313,7 +315,6 @@ function teteAxel() {
 
 function gameOver(statut)
 {
-    fadePictureOut();
     end = true;
     //Remove all
         stars.removeAll();
