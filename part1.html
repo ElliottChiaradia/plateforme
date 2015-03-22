@@ -207,13 +207,15 @@ function update() {
         //tire=true;
         if(modifMonsterGravity==true)
         {
+
             modifMonsterGravity=false;
+            monstre.body.velocity.y = 160;
         }
     }
       if(monstre.body.y<350 &&player.body.x>590&&player.body.x<640&&modifMonsterGravity==false)
     {
         modifMonsterGravity=true;
-        monstre.body.gravity.y = 1000;
+        monstre.body.velocity.y = 200;
     }
 
 
