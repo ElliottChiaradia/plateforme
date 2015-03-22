@@ -30,6 +30,7 @@ function preload() {
     game.load.image('axel_troll', 'assets/lotOfBeers.png');
     game.load.image('restart', 'assets/restart2.png');
     game.load.image('boule_feu', 'assets/boule_feu.png');
+    game.load.image('night', 'assets/night.png');
 
     game.load.audio('main_music', 'assets/audio/Yeah.mp3');
     game.load.audio('audio_coin', 'assets/audio/p-ping.mp3');
@@ -70,20 +71,32 @@ var tire =false;
 var bullets;
 var modifMonsterGravity =false;
 
+var fondNight
 
 
 // --------------------------------------------------------------------------------------//
 
 function create() {
 
- // Ground et platforme
+
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //  A simple background for our game
     game.add.sprite(0, 0, 'sky');
+
+//Night
+    nightEventStart();
+
+//The Sound
+    bruit_jump = game.add.audio('audio_jump');
+    bruit_dead = game.add.audio('audio_dead');
+    bruit_coin = game.add.audio('audio_coin');
+    music = game.add.audio('main_music');
+    music.play();
    
+// Ground et platforme
     platforms = game.add.group();
 
     platforms.enableBody = true;
@@ -120,12 +133,6 @@ function create() {
 //  The score
     scoreText = game.add.text(game.world.width-150 , 0, '0 POINT', { fontSize: '60px', fill: '#000' });
     
-//The Sound
-    bruit_jump = game.add.audio('audio_jump');
-    bruit_dead = game.add.audio('audio_dead');
-    bruit_coin = game.add.audio('audio_coin');
-    music = game.add.audio('main_music');
-    music.play();
 //Bullets
     bullets = game.add.group();
     bullets.enableBody = true;
@@ -252,6 +259,22 @@ function createPlayer(){
     game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
 }
 
+function nightEventStart(){
+    fondNight = game.add.sprite(game.world.centerX, game.world.centerY, 'night');
+    fondNight.anchor.setTo(0.5, 0.5);
+    fondNight.scale.setTo(2, 2);
+    fondNight.alpha = 0;
+    game.time.events.add(Phaser.Timer.SECOND * 12, fadePictureIn, this);
+}
+
+function fadePictureIn() {
+    game.add.tween(fondNight).to( { alpha: 1 }, 15000, Phaser.Easing.Linear.None, true);
+}
+
+function fadePictureOut() {
+    game.add.tween(fondNight).to( { alpha: 0 }, 8000, Phaser.Easing.Linear.None, true);
+}
+
 function dead (player, monstre) {
     
     player.kill();
@@ -290,6 +313,7 @@ function teteAxel() {
 
 function gameOver(statut)
 {
+    fadePictureOut();
     end = true;
     //Remove all
         stars.removeAll();
@@ -329,6 +353,7 @@ function restart(){
     btnRestart.destroy();
     scoreText.destroy();
     resetScore();
+    fondNight.destroy();
 
     if(axel!=false)
     {
@@ -344,6 +369,7 @@ function restart(){
     createStars();
     createMonsters();
     createPlayer();
+    nightEventStart();
     end=false;
     axel=false;
 }
