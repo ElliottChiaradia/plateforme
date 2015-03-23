@@ -135,13 +135,20 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
 //  The score
     scoreText = game.add.text(game.world.width-150 , 0, '0 POINT', { fontSize: '60px', fill: '#000' });
-    
 
-//  fireball
+//fireball
     if(end==false){
-        game.time.events.loop(3000, fireBall);
+        var randomNumber = game.rnd.integerInRange(1,2);
+        /*fireball(x,y,intervalle, image, physique, traverser, rebond, gravité X, gravité y,speedX,minRange, maxRange, type, nom du monstre, décallage du point de départ sur l'axe des x, décallage du point de départ sur l'axe des y)
+            type : 
+                normal
+                3zonesY
+                3zonesX
+                follow*/
+        game.time.events.loop(3000, fireball2, this, 1,2,randomNumber, 'boule_feu',true, true, 0, 0, 100,500, -450, 430, '3zonesY', "monstre", 0, 40);
     }
 
+    
 }
 
 // --------------------------------------------------------------------------------------//
@@ -152,7 +159,7 @@ function update() {
     game.physics.arcade.collide(monstres, platforms);
     //game.physics.arcade.collide(fireBall, platforms);
 
-    game.physics.arcade.overlap(player, fireBalls, dead, null, this);
+    game.physics.arcade.overlap(player, fireBall, dead, null, this);
     game.physics.arcade.overlap(player, monstres, dead, null, this);
     game.physics.arcade.overlap(player, stars, collectStar, null, this);
 
@@ -203,7 +210,6 @@ function update() {
         //tire=true;
         if(modifMonsterGravity==true)
         {
-
             modifMonsterGravity=false;
             monstre.body.velocity.y = 160;
         }
@@ -214,12 +220,63 @@ function update() {
         monstre.body.velocity.y = 200;
     }
 
-
-
 }
 
 // --------------------------------------------------------------------------------------//
+function fireball2(x, y, interval, image, physic, pass, bounce, gravityX, gravityY,speedX,minRange, maxRange, type, nameOfTheMonster, modifX, modifY ){
+   
+    game.time.events.add(Phaser.Timer.SECOND * interval, shoot, this, x, y, image, physic, pass, bounce, gravityX, gravityY,speedX, minRange, maxRange, type, nameOfTheMonster, modifX, modifY);
+}
+function shoot(x, y, image, physic, pass, bounce, gravityX, gravityY,speedX, minRange, maxRange, type, nameOfTheMonster, modifX, modifY){
 
+//A MODIFIER : REMPLACER MONSTRE PAR LA VARIABLE nameOfTheMonster !!!!
+    x = monstre.body.x+modifX;
+    y = monstre.body.y+modifY;
+
+    fireBall = game.add.sprite(x,y,image);
+    if(physic==true)
+    {
+        game.physics.arcade.enable(fireBall);
+    }
+
+    fireBall.enableBody=true;
+    fireBall.body.gravity.x=gravityX;
+    fireBall.body.gravity.y=gravityY;
+    fireBall.body.bounce.y =bounce;
+   
+
+    if(type=="normal")
+    {
+        //Ne vise pas
+        var yVelocity = game.rnd.integerInRange(minRange,maxRange);
+        var xVelocity = -1* Math.sqrt(speedX*speedX-Math.pow(yVelocity,2));
+        fireBall.body.velocity.y = yVelocity;
+        fireBall.body.velocity.x = xVelocity;
+    }
+    else
+    {
+         //Vise par rapport à la position de y du player :
+        if(player.body.y<223)
+        {
+            var min =-380;
+            var max=-130;
+        }
+        else if(player.body.y<395)
+        {
+            var min=-130;
+            var max=0;
+        }
+        else
+        {
+            var min=0;
+            var max=430;
+        }
+        var yVelocity = game.rnd.integerInRange(min,max);
+        var xVelocity = -1* Math.sqrt(speedX*speedX-Math.pow(yVelocity,2));
+        fireBall.body.velocity.y = yVelocity;
+        fireBall.body.velocity.x = xVelocity;
+    }
+}
 function createStars(){
     //  Here we'll create 12 of them evenly spaced apart
     for (var i = 0; i < 12; i++)
@@ -275,70 +332,6 @@ function fadePictureOut() {
     tween.onComplete.add(this.fadePictureIn, this);
 }*/
 
-function fireBall(){
-    var randomNumber = game.rnd.integerInRange(1,2);
-    game.time.events.add(Phaser.Timer.SECOND * randomNumber, monsterShoot, this);
-}
-function monsterShoot(){
-    var x = monstre.body.x;
-    var y = monstre.body.y;
-/*
-    game.physics.arcade.collide(fireBall, platforms);
-
-    fireBall = game.add.sprite(x,y+40,'boule_feu');
-    game.physics.arcade.enable(fireBall);
-    fireBall.body.gravity.y=100;
-    fireBall.body.bounce.y =0.8;
-
-    var yVelocity = game.rnd.integerInRange(-450,450);
-    var xVelocity = -1* Math.sqrt(450*450-Math.pow(yVelocity,2));
-    fireBall.body.velocity.y = yVelocity;
-    fireBall.body.velocity.x = xVelocity;
-*/
-
-    fireBalls =game.add.group();
-    fireBalls.enableBody=true;
-    game.physics.arcade.enable(fireBalls);
-
-    fireBall = fireBalls.create(x,y+40,'boule_feu');
-    fireBall.body.gravity.y=100;
-    fireBall.body.bounce.y =0.8;
-
-/*  //Ne vise pas
-    var yVelocity = game.rnd.integerInRange(-450,430);
-    var xVelocity = -1* Math.sqrt(500*500-Math.pow(yVelocity,2));
-    fireBall.body.velocity.y = yVelocity;
-    fireBall.body.velocity.x = xVelocity;
-*/
-
-
-    //Vise par rapport à la position de y du player :
-    if(player.body.y<223)
-    {
-        var min =-380;
-        var max=-130;
-    }
-    else if(player.body.y<395)
-    {
-        var min=-130;
-        var max=0;
-    }else{
-        var min=0;
-        var max=430;
-
-    }
-
-    var yVelocity = game.rnd.integerInRange(min,max);
-    var xVelocity = -1* Math.sqrt(500*500-Math.pow(yVelocity,2));
-    fireBall.body.velocity.y = yVelocity;
-    fireBall.body.velocity.x = xVelocity;
-
-/*
-    542-395  0,430
-    395-296    -130,0
-    296-223    ,-130
-    */
-}
 
 function dead (player, monstre) {
     
