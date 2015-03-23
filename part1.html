@@ -73,6 +73,7 @@ var modifMonsterGravity =false;
 
 var fondNight
 
+var fireBall;
 
 // --------------------------------------------------------------------------------------//
 
@@ -133,6 +134,9 @@ function create() {
 //  The score
     scoreText = game.add.text(game.world.width-150 , 0, '0 POINT', { fontSize: '60px', fill: '#000' });
     
+
+//fireball
+    fireBall();
 //Bullets
     bullets = game.add.group();
     bullets.enableBody = true;
@@ -156,7 +160,9 @@ function update() {
     game.physics.arcade.collide(stars, platforms);
     game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(monstres, platforms);
+    game.physics.arcade.collide(fireBall, platforms);
 
+    game.physics.arcade.overlap(player, fireBall, dead, null, this);
     game.physics.arcade.overlap(player, monstres, dead, null, this);
     game.physics.arcade.overlap(player, stars, collectStar, null, this);
 
@@ -277,6 +283,24 @@ function fadePictureIn() {
 function fadePictureOut() {
     var tween =game.add.tween(fondNight).to( { alpha: 0 }, 15000, Phaser.Easing.Linear.None, true);
     tween.onComplete.add(this.fadePictureIn, this);
+}
+
+function fireBall(){
+    game.time.events.add(Phaser.Timer.SECOND * 4, monsterShoot, this);
+}
+function monsterShoot(){
+    var x = monstre.body.x;
+    var y = monstre.body.y;
+
+    fireBall = game.add.sprite(x,y+40,'boule_feu');
+    game.physics.arcade.enable(fireBall);
+    fireBall.body.gravity.y=100;
+    fireBall.body.bounce.y =0.8;
+
+    var yVelocity = game.rnd.integerInRange(-500,800);
+    var xVelocity = -1* Math.sqrt(800*800-Math.pow(yVelocity,2));
+    fireBall.body.velocity.y = yVelocity;
+    fireBall.body.velocity.x = xVelocity;
 }
 
 function dead (player, monstre) {
